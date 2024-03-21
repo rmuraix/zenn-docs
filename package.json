@@ -6,6 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write .",
+    "lint": "textlint --cache --fix './**/*.md'",
     "preview": "zenn preview",
     "new": "zenn new:article"
   },
@@ -13,6 +15,10 @@
   "author": "Ryota Murai",
   "license": "ISC",
   "devDependencies": {
+    "prettier": "^3.2.5",
+    "textlint": "^14.0.4",
+    "textlint-rule-preset-ja-technical-writing": "^10.0.1",
+    "textlint-rule-preset-jtf-style": "^2.3.14",
     "zenn-cli": "^0.1.153"
   }
 }

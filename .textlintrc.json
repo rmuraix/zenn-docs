@@ -1,0 +1,12 @@
+{
+  "plugins": {},
+  "filters": {},
+  "rules": {
+    "preset-ja-technical-writing": {
+      "ja-no-mixed-period": {
+        "allowPeriodMarks": [":"]
+      }
+    },
+    "preset-jtf-style": true
+  }
+}
