@@ -6,8 +6,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "format": "prettier --write .",
-    "lint": "textlint --cache --fix './**/*.md'",
+    "format:write": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:fix": "textlint --cache --fix './**/*.md'",
+    "lint:check": "textlint --cache './**/*.md'",
     "preview": "zenn preview",
     "new": "zenn new:article",
     "prepare": "husky",
