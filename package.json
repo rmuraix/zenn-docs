@@ -9,12 +9,24 @@
     "format": "prettier --write .",
     "lint": "textlint --cache --fix './**/*.md'",
     "preview": "zenn preview",
-    "new": "zenn new:article"
+    "new": "zenn new:article",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
+  },
+  "lint-staged": {
+    "*.md": [
+      "prettier --write",
+      "textlint --cache --fix",
+      "textlint --cache"
+    ],
+    "*.{json,yml}": ["prettier --write"]
   },
   "keywords": [],
   "author": "Ryota Murai",
   "license": "ISC",
   "devDependencies": {
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
     "prettier": "^3.2.5",
     "textlint": "^14.0.4",
     "textlint-rule-preset-ja-technical-writing": "^10.0.1",
