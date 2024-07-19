@@ -17,7 +17,7 @@
   "author": "Ryota Murai",
   "license": "ISC",
   "devDependencies": {
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.3",
     "textlint": "^14.0.4",
     "textlint-rule-preset-ja-technical-writing": "^10.0.1",
     "textlint-rule-preset-jtf-style": "^2.3.14",
