@@ -1,6 +1,11 @@
 {
   "plugins": {},
-  "filters": {},
+  "filters": {
+    "comments": true,
+    "allowlist": {
+      "allow": ["/:::details\\s+.*$/m"]
+    }
+  },
   "rules": {
     "preset-ja-technical-writing": {
       "ja-no-mixed-period": {
