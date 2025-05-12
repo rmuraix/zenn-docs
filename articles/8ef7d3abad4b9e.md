@@ -9,10 +9,12 @@ published: false
 ## Pruningとは
 
 Pruning（枝刈り）は、ニューラルネットワークにおいて重要度の低いパラメータ（重みやノード）を削除することで、**モデルをスリム化**する手法です。削除されるのは、学習済みのネットワークにおいて出力への影響が小さいと判断された構成要素であり、その判断には様々な基準や手法が存在します。
-本記事では、Pruningの種類や設計の要素を整理します。
+本記事では、Pruningの種類や設計の要素について、[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)の内容を基に整理します。
 
 ![](https://storage.googleapis.com/zenn-user-upload/73d451884012-20250511.png)
 _[Learning both Weights and Connections for Efficient Neural Networks \[Han et al., 2015\]](https://arxiv.org/abs/1506.02626)_
+
+なお、正確性には十分気をつけていますが、筆者はプロフェッショナルではないので間違いを含んでいる可能性があることをご了承ください。
 
 ## なぜPruningが必要か
 
@@ -219,56 +221,110 @@ _[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)が作成_
 
 ### Regression-based
 
-https://arxiv.org/abs/1707.06168
-
-回帰によって損失の変化を予測し、Pruning前の損失との差が小さくなるようなPruningを決定する方法です。
-
-![](https://storage.googleapis.com/zenn-user-upload/0611e4feeaba-20250512.png)
-_[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)が作成_
+回帰（Regression）を用いたPruningは、削除するパラメータの選択を誤差の予測という観点から最適化するアプローチです。これは「削除によってどれほどモデルの出力が変化するか」を定量的に評価し、出力への影響が最小になるようなパラメータを選択する点が特徴です。
+この手法は、[He et al. (2017)](https://arxiv.org/abs/1707.06168) によって提案された **Channel Pruning via Mean Squared Error Minimization** に基づいています。
+まず、ある層の出力を次のように表現します。
 
 $$
-Z = XW^T = \sum_{c=0}^{c_i-1}X_c {W_c}^T
+\mathbf{Z} = \sum_{c=0}^{c_i-1} \mathbf{X}_c \mathbf{W}_c^\top
 $$
 
-とおいたときに以下を解くことによって最適化を行います。
+- $\mathbf{X}_c$：入力テンソルのチャンネル$c$
+- $\mathbf{W}_c$：チャンネル$c$に対応するカーネル
+- $\mathbf{Z}$：層の出力
+
+ここで、Pruning後の出力を $\hat{\mathbf{Z}}$ とし、**Pruningによってもとの出力とできるだけ変わらないようにしたい**という目標を、以下のような最適化問題として定式化します。
 
 <!-- textlint-disable -->
 
 $$
-\arg\min_{\mathbf{W},\,\boldsymbol{\beta}} \left\| \mathbf{Z} - \hat{\mathbf{Z}} \right\|_F^2 = \left\| \mathbf{Z} - \sum_{c=0}^{c_i - 1} \beta_c \mathbf{X}_c \mathbf{W}_c^\top \right\|_F^2
+\arg\min_{\mathbf{W},\,\boldsymbol{\beta}} \left\| \mathbf{Z} - \sum_{c=0}^{c_i - 1} \beta_c \mathbf{X}_c \mathbf{W}_c^\top \right\|_F^2
 $$
 
+ここでの変数は次のような意味を持ちます。
+
+- $\boldsymbol{\beta} \in \{0,1\}^{c_i}$：チャンネルごとの選択を表すベクトル。$\beta_c = 0$ でチャンネル$c$を削除する。
+- 制約 $\left\| \boldsymbol{\beta} \right\|_0 \le N_c$：残すチャンネル数の上限を定める（非ゼロの数が$N_c$以下）
 <!-- textlint-enable -->
 
-- $\beta$：各チャンネルを使うか決める係数ベクトル。${\beta}_c=0$のときチャンネル$c$はPruningされる（長さ$c_i$）
-- $\left\| \beta \right\|_0 \le N_c$
+![](https://storage.googleapis.com/zenn-user-upload/0611e4feeaba-20250512.png)
+_[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)が作成_
+
+この手法の本質は、**チャンネルを削除しても出力ができるだけ変化しないようにする**という考え方にあります。単純なL1ノルムなどの指標ではなく、「出力空間における影響度」に基づいて削除対象を選ぶため、精度劣化を抑えやすいという利点があります。
 
 ## 層ごとのPruning率の最適化
 
-ここまで、Pruningの粒度（どの単位で削減するか）と基準（どのパラメータを削減するか）について見てきました。しかし、どの程度まで削減を行うか（Pruning率）も、モデル性能や推論効率に大きく影響する重要な要素です。
+ここまで、Pruningの粒度（どの単位で削減するか）と基準（どのパラメータを削減するか）について見てきました。しかし、どの程度まで削減するか（Pruning率）も、モデル性能や推論効率に大きく影響する重要な要素です。
+たとえば、チャンネル単位の構造化Pruningにおいて、すべての層に一律のPruning率を適用するのではなく、層ごとの特性に応じて異なる割合でPruningを行います。これにより高い精度を維持しつつ、推論時のレイテンシを抑えることが可能になります。
+しかし、層ごとにどの程度Pruningを行うべきかを事前に知ることは困難です。層によってモデル全体の性能に与える影響度は異なるため、一律の基準では最適なPruning率を見つけられないのが実情です。
 
-たとえば、チャンネル単位の構造化Pruningにおいて、すべての層に一律のPruning率を適用するのではなく、層ごとの特性に応じて異なる割合でPruningを行うことで、より高い精度を維持しつつ、推論時のレイテンシを抑えることが可能になります。
+### Sensitivity Analysis
 
-しかし、層ごとにどの程度Pruningを行うべきかを事前に知ることは容易ではありません。層によってモデル全体の性能に与える影響度は異なるため、一律の基準では最適なPruning率を見つけることができないのが実情です。
+各層に対して一律のPruning率を設定する方法では、ネットワーク全体の性能を最適化することは困難です。なぜなら、層ごとに表現している情報の重要度やロバスト性が異なるため、同じ割合でパラメータを削減しても、ある層では性能にほとんど影響がない一方、他の層では致命的な劣化を引き起こす場合があるからです。
+このような状況に対して有効なアプローチのひとつが、**感度分析**（Sensitivity Analysis）です。感度分析では、各層ごとに異なるPruning率を段階的に適用し、それによって生じる性能指標（通常は精度や損失）の変化を測定します。このとき、以下のようなステップで進行します。
 
-### 感度分析
+1. **層単位でのPruning実験**：各層に対して単独で一定割合のPruningを施し、その都度全体の推論精度を測定する。例えば、層Xを10%, 20%, …, 90% の割合でPruningして、その精度を記録する。
+1. **感度スコアの評価**：精度の劣化度合いを基に、各層の性能への寄与度（＝感度）を定量化する。例えば、「80%削除しても精度がほとんど変わらない層」は感度が低く、「20%削除するだけで精度が大きく落ちる層」は感度が高いとみなす。
+1. **Pruning率の最適化**：得られた感度に基づいて、感度の低い層から優先的に高いPruning率を適用し、感度の高い層にはより慎重にPruningを行う戦略を構築する。これはヒューリスティックに設定する場合もあれば、最適化問題として定式化し解を求めることもある（例：Lagrangianベースの最適化など）。
 
-このような状況に対して有効なアプローチのひとつが、**感度分析（Sensitivity Analysis）**です。感度分析では、各層に対して異なるPruning率を設定し、各率における性能の変化を評価します。そして、各層においてしきい値を下回らないようなPruning率をその層のPruning率とします。
-
-これにより、性能への影響が小さい層を優先的に削減し、重要な層の情報は維持するといった戦略的なPruning設計が可能になります。
+![](https://storage.googleapis.com/zenn-user-upload/256f3e4c2684-20250512.png)
+_[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)が作成_
 
 ### AMC (AutoML for Model Compression)
 
-感度分析は層ごとに異なるPruning率を設定することを可能にしましたが、各層を独立して考えており、層間の相互作用を考慮しているため、必ずしも最適とは限りません。また、最適なPruning率を自動的に探索できればより便利です。
+従来の感度分析ベースのPruning手法では、各層を個別に評価し、それぞれに適切なPruning率を割り当てる設計が主流でした。しかしこのアプローチでは、層間の相互作用（例：前層の出力が後層の入力に影響する構造）を無視しており、全体として最適なネットワーク設計にはならない可能性があります。さらに、ネットワーク全体におけるPruning率の探索は膨大な組み合わせを持つため、手動による設計やグリッドサーチでは非現実的です。
+[AMC [He et al., 2018]](https://arxiv.org/abs/1802.03494)は、深層モデルのPruning率の決定を自動化された最適化問題として定式化し、強化学習を用いてその解を探索する手法です。
+AMCでは、モデル圧縮を「逐次的な意思決定問題」として定式化し、強化学習の枠組みで各層のPruning率を段階的に決定するエージェント（ポリシー）を学習します。主な構成は以下のとおりです。
 
-AMCは、Pruningの問題を強化学習の問題として定式化することにより、Pruning率の自動探索を可能にしました。
+- **State**：現在の層に関する情報
+- **Action**：その層で適用するPruning率
+- **Reward**：最終的な精度とFLOPに基づいて計算（$−\text{Error} \times \log{(\text{FLOP})}$）
 
-AMCは人間が1週間かかった作業を数時間で実施することを可能にしました。
+<!-- textlint-disable -->
 
-また、MobileNetを使った実験では性能を維持しながらレイテンシとメモリ使用量を改善しました。
+![](https://storage.googleapis.com/zenn-user-upload/6f14f3f38958-20250512.png)
+_[AMC: AutoML for Model Compression and Acceleration on Mobile Devices [He et al., 2018]](https://arxiv.org/abs/1802.03494)_
 
-### モデルのFine-tuning
+<!-- textlint-enable -->
 
-Pruning後のモデルは性能が低下することがあるため、Fine-tuningによって精度を回復する必要があります。
+学習の流れとしては、ポリシーネットワーク（DDPG）を用いて層ごとのPruning率を逐次的に選択し、それに基づいて生成された圧縮済みモデルを評価し、報酬をフィードバックしてポリシーを更新します。
+AMCは人間では1週間かかる作業を数時間で実施できます。
 
-Fine-tuning時の
+<!-- textlint-disable -->
+
+![](https://storage.googleapis.com/zenn-user-upload/8203bedf50ad-20250512.png)
+_[AMC: AutoML for Model Compression and Acceleration on Mobile Devices [He et al., 2018]](https://arxiv.org/abs/1802.03494)_
+
+<!-- textlint-enable -->
+
+また、実験では性能を維持しながらレイテンシとメモリ使用量を改善できることを示しました。
+
+## モデルのFine-tuning
+
+Pruning後のモデルは性能低下を引き起こす場合があるため、Fine-tuningによって精度を回復する必要があります。
+
+![](https://storage.googleapis.com/zenn-user-upload/1ca0bf3ae000-20250512.png)
+_[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)が作成_
+
+### Iterative Pruning
+
+Pruningを実施する際、一度に大きな割合のパラメータを削除してしまうと、モデルの性能が急激に低下してしまうことがあります。**Iterative Pruning**（反復的Pruning）は、少しずつ段階的にパラメータを削減し、そのたびに再学習（ファインチューニング）を行うことで、性能を維持しながら圧縮を進める手法です。
+Iterative Pruningでは、以下のような手順でPruningが進行します。
+
+1. モデルを初期学習または事前学習済みモデルから開始
+1. Pruning基準に基づいて一部のパラメータを削除
+1. 削減後のモデルをファインチューニングして精度を回復
+1. 再びPruning → ファインチューニングを繰り返す
+1. 目標のPruning率または精度低下のしきい値に達したら停止
+
+この「Pruning → ファインチューニング」のループを数回繰り返すことで、急激な性能劣化を回避しながら高い圧縮率を達成できます。
+
+![](https://storage.googleapis.com/zenn-user-upload/368b20949b35-20250512.png)
+_[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)が作成_
+
+## おわりに
+
+本記事では、ニューラルネットワークのモデル圧縮手法として広く研究されているPruningについて、基本的な概念を整理しました。
+近年のモデルはますます大規模・高性能化している一方で、リソース制約のある環境や実運用の観点からは、軽量かつ効率的なモデルが求められる場面も少なくありません。Pruningはそのようなニーズに応えるための重要な技術のひとつであり、適切に設計・適用することで、モデルの性能を維持しつつ計算資源の節約や高速化を実現可能です。
+Pruningの設計は「どこを」「どのように」「どのくらい」削減するかという多面的な選択が絡むため、単純なルールだけでなくモデルや目的に応じた柔軟なアプローチが必要です。今後、さらなる自動化技術やハードウェアとの協調設計が進む中で、Pruningの研究と実装はますます重要性を増していくでしょう。
+本記事が、Pruningの理解を深める一助となれば幸いです。
