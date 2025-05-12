@@ -106,6 +106,8 @@ _[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)が作成_
 
 ### Scaling-based
 
+https://arxiv.org/abs/1708.06519
+
 スケーリングに基づく方法は、ネットワークのスケーリング係数を指標として、各構成要素（チャンネルやノードなど）の重要度を評価し、削除するべき部分を決定するアプローチです。代表的な手法にはBatchNormのスケール係数を活用した方法があります。
 BatchNorm層の出力は以下の式で表されます。
 
@@ -307,6 +309,8 @@ Pruning後のモデルは性能低下を引き起こす場合があるため、F
 _[MIT 6.5940](https://hanlab.mit.edu/courses/2024-fall-65940)が作成_
 
 ### Iterative Pruning
+
+https://arxiv.org/abs/1506.02626
 
 Pruningを実施する際、一度に大きな割合のパラメータを削除してしまうと、モデルの性能が急激に低下してしまうことがあります。**Iterative Pruning**（反復的Pruning）は、少しずつ段階的にパラメータを削減し、そのたびに再学習（ファインチューニング）を行うことで、性能を維持しながら圧縮を進める手法です。
 Iterative Pruningでは、以下のような手順でPruningが進行します。
