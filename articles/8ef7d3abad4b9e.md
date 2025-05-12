@@ -3,7 +3,7 @@ title: "Pruningについてまとめてみた"
 emoji: "✂️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["ディープラーニング"]
-published: false
+published: true
 ---
 
 ## Pruningとは
