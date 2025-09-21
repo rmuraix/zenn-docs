@@ -31,7 +31,7 @@ https://hanlab.mit.edu/projects/gancompression
 Liら(CVPR 2020)は、Conditional GANの圧縮方法を提案しています。以下は提案手法を表した図であり、大きく3段階に分かれています。
 
 ![](https://storage.googleapis.com/zenn-user-upload/fb8524fac8e9-20250721.png)
-_Li et al., GAN Compression: Efficient Architectures for Interactive Conditional GANs. 2020　より_
+*Li et al., GAN Compression: Efficient Architectures for Interactive Conditional GANs. 2020　より*
 
 <!-- textlint-disable -->
 
