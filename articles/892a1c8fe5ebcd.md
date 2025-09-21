@@ -32,7 +32,9 @@ Liら(CVPR 2020)は、Conditional GANの圧縮方法を提案しています。�
 
 ![](https://storage.googleapis.com/zenn-user-upload/fb8524fac8e9-20250721.png)
 _Li et al., GAN Compression: Efficient Architectures for Interactive Conditional GANs. 2020　より_
+
 <!-- textlint-disable -->
+
 1. 知識蒸留： 学習済み教師モデルの出力 $G'(x)$ とチャンネル数を削減した生徒モデルの出力 $G(x)$ を近づけるように、Reconstruction Lossを用いて学習する。このとき、中間層の特徴マップも近づけるために、Disstillation Lossを用いる。さらに一般的なGANの損失関数も使用する(cGAN Loss)
 2. より小さくて高性能なチャンネル幅の組み合わせを探索する
 3. 探索により得られた最良の構成をFine-tuningする
@@ -57,7 +59,9 @@ $$
 = \mathbb{E}_{x,y}[\log D(x,y)]
 + \mathbb{E}_{x}[\log(1 - D(x, G(x)))],
 $$
+
 <!-- textlint-enable -->
+
 この手法による圧縮結果を示しています。代表的な条件付きGANである[CycleGAN](https://arxiv.org/abs/1703.10593)・[Pix2pix](https://arxiv.org/abs/1611.07004)・[GauGAN](https://arxiv.org/abs/1903.07291)について、推論速度とモデルサイズの大きな改善を達成しました。
 
 ![](https://storage.googleapis.com/zenn-user-upload/eca40cede74f-20250921.jpg)
@@ -72,11 +76,15 @@ $$
 
 FIDは **Fréchet Inception Distance** の略で、生成画像と実画像の分布の距離を測る指標です。
 画像認識モデルであるInception v3を使って画像を特徴ベクトルに変換し、それらを多次元ガウス分布に近似したうえでFréchet距離を計算します。
+
 <!-- textlint-disable -->
+
 $$
 \text{FID} = \| \mu_r - \mu_g \|^2 + \mathrm{Tr}\left(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2}\right)
 $$
+
 <!-- textlint-enable -->
+
 - $\mu_r, \Sigma_r$：実画像の特徴ベクトルの平均と共分散
 - $\mu_g, \Sigma_g$：生成画像の特徴ベクトルの平均と共分散
 
@@ -174,9 +182,13 @@ https://arxiv.org/abs/2006.10738
 https://hanlab.mit.edu/projects/diffaug
 
 Zhaoら（NeurIPS 2020）は、本物画像と生成画像の両方に、かつ生成器にも勾配が伝わる形で拡張を適用する方法を提案しました。
+
 <!-- textlint-disable -->
+
 具体的には識別器の更新時には $D(T(x)), D(T(G(z)))$ を使用します。そして、生成器の更新時には $D(T(G(z)))$ に基づいて勾配を逆伝播させます（拡張 $T$ は微分可能である必要あり）。このような設計により生成器は拡張を考慮した画像を生成できるようになりました。
+
 <!-- textlint-enable -->
+
 ![](https://storage.googleapis.com/zenn-user-upload/cf13a14e6405-20250921.jpeg)
 *https://hanlab.mit.edu/projects/diffaug*
 
