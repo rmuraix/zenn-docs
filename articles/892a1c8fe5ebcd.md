@@ -35,11 +35,11 @@ Liら(CVPR 2020)は、Conditional GANの圧縮方法を提案しています。�
 
 <!-- textlint-disable -->
 
-1. 知識蒸留： 学習済み教師モデルの出力 $G'(x)$ とチャンネル数を削減した生徒モデルの出力 $G(x)$ を近づけるように、Reconstruction Lossを用いて学習する。このとき、中間層の特徴マップも近づけるために、Disstillation Lossを用いる。さらに一般的なGANの損失関数も使用する(cGAN Loss)
+1. 知識蒸留： 学習済み教師モデルの出力 $G'(x)$ とチャンネル数を削減した生徒モデルの出力 $G(x)$ を近づけるように、Reconstruction Lossを用いて学習する。このとき、中間層の特徴マップも近づけるために、Distillation Lossを用いる。さらに一般的なGANの損失関数も使用する(cGAN Loss)
 2. より小さくて高性能なチャンネル幅の組み合わせを探索する
 3. 探索により得られた最良の構成をFine-tuningする
 
-Reconstruction Loss・Disstillation Loss・cGAN Lossはそれぞれ以下のように表されます。
+Reconstruction Loss・Distillation Loss・cGAN Lossはそれぞれ以下のように表されます。
 
 $$
 \mathcal{L}_{\text{recon}} =
@@ -115,7 +115,7 @@ _[TinyML and Efficient Deep Learning Computing](https://hanlab.mit.edu/courses/2
 ### マルチ解像度学習
 
 通常のStyleGAN2では中間層の出力をそのまま低解像度画像にすると不自然になります。
-Anycost GANでは、学習時に解像度をランダムサンプリングし、各解像度で自然な画像を出力するように訓練します。
+AnyCost GANでは、学習時に解像度をランダムサンプリングし、各解像度で自然な画像を出力するように訓練します。
 
 ![](https://storage.googleapis.com/zenn-user-upload/7ccbbc573602-20250921.png)
 _[TinyML and Efficient Deep Learning Computing](https://hanlab.mit.edu/courses/2024-fall-65940)より_
@@ -134,7 +134,7 @@ _[TinyML and Efficient Deep Learning Computing](https://hanlab.mit.edu/courses/2
 ### ジェネレータ条件付き識別器
 
 多様な解像度・チャンネル設定を同時に訓練すると、通常の識別器では対応しきれません。
-Anycost GANでは、識別器に「ジェネレータの構造情報」を入力し、それに応じて特徴マップを変調します。例えば、「このサブネットは0.5×チャンネル構成」と識別器に知らせることで、すべてのサブネットに適切なフィードバックを与えられるようになります。
+AnyCost GANでは、識別器に「ジェネレータの構造情報」を入力し、それに応じて特徴マップを変調します。例えば、「このサブネットは0.5×チャンネル構成」と識別器に知らせることで、すべてのサブネットに適切なフィードバックを与えられるようになります。
 
 ![](https://storage.googleapis.com/zenn-user-upload/137bd89f0977-20250921.gif)
 *https://hanlab.mit.edu/projects/anycost-gan*
