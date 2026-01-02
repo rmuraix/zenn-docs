@@ -3,7 +3,7 @@
 {
   "name": "zenn",
   // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "node:22-bullseye-slim",
+  "image": "node:24-bullseye-slim",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "upgradePackages": false,
