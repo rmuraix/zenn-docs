@@ -1,5 +1,5 @@
 ---
-title: "効率的なGANs [TinyML]"
+title: "効率的な敵対的生成ネットワーク [TinyML]"
 emoji: "🗜️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["ディープラーニング"]
