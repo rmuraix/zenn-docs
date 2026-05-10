@@ -28,9 +28,9 @@ Each article file under `articles/` requires this frontmatter:
 ---
 title: "記事タイトル"
 emoji: "🔥"
-type: "tech"       # tech: 技術記事 / idea: アイデア
+type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["tag1", "tag2"]
-published: true    # false to keep as draft
+published: true # false to keep as draft
 ---
 ```
 
